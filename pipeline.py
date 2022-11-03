@@ -7,33 +7,33 @@ import binning
 import fitting
 import mapping
 import time
+import aux
 gc=cla.dat()
 if not os.path.exists(gc.dir):
     os.mkdir(gc.dir)
 dat=fits.open(gc.dir1)
 header=dat[0].header
 dat=dat[0].data
-dat=dat[:,:580,:580]
+#dat=dat[:,200:400,200:400]
+#if gc.binning=="Voronoi":
+dat=dat[:,gc.xpos-int(gc.grid_size/2):gc.xpos+int(gc.grid_size/2),gc.ypos-int(gc.grid_size/2):gc.ypos+int(gc.grid_size/2)]
+#print(gc.xpos-gc.grid_size/2,gc.xpos+gc.grid_size/2)
+#if gc.binning=="Normal":
+#	dat=dat[:,:gc.grid_size,:gc.grid_size]
 N=len(gc.line)
 t1=time.time()
-
-#binning.binning(gc)
+#print(header)
+#print(os.path.exists(gc.dir2))
 #"""
-#binning.bins(gc,dat,header)
+binning.binning(gc,dat,header)
+binning.bins(gc,dat,header)
+
 for i in range(N):
-	x1=round((gc.line[i]-150)/100)*100
-	x2=round((gc.line[i]+150)/100)*100
-	diffx=x2-x1
-	x=x=np.linspace(x1,x2,int(diffx/1.25))
-	b1=int((x1-header[33])/1.25)
-	b2=int((x2-header[33])/1.25)
-	spectral_range=np.arange(b1,b2,1)
-	binning.snr(gc,dat,x,i)
-	binning.binning(gc,i) #Inside the loop when do intelligent binning
-#	fitting.fitting(gc,x,spectral_range,i)
+	x1,x2,x=aux.spectral_range(gc,header)
+	b1,b2,slices=aux.slice_range(gc,header)
+	fitting.fitting(gc,x,slices,i)
 #"""
-#mapping.mapping(gc)
-
+mapping.mapping(gc)
 
 t2=time.time()
 print(t2-t1)

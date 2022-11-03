@@ -2,15 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from matplotlib import cm
+from astropy.io import fits
+from matplotlib.backends.backend_pdf import PdfPages
 def mapping(gc):
 	N=len(gc.line)
+	pdf = PdfPages(gc.dir8)
 	fig,axs=plt.subplots(N,3)
 	for k in range(N):
-		Intensity,Rel_velocity,Vel_dispersion,Deviation=np.genfromtxt(gc.dir5+"_"+str(gc.line[k]),usecols=(5,1,2,4),unpack=True)
-#		Rel_velocity=(Rel_velocity/gc.line[k]-1)*299793.4
-#		mean_vel=np.mean(Rel_velocity)
-#		print(mean_vel)
-#		Vel_dispersion=(Vel_dispersion/gc.line[k])*299793.4
+		Intensity,Rel_velocity,Vel_dispersion,Deviation=np.genfromtxt(gc.dir6,usecols=(5,1,2,4),unpack=True)
 		SNR=Intensity/Deviation
 		for i in range(len(Intensity)):
 			if SNR[i]<3:
@@ -18,11 +17,17 @@ def mapping(gc):
 				Rel_velocity[i]=np.nan
 				Vel_dispersion[i]=np.nan
 		mean_vel=np.mean(Rel_velocity)
-		Rel_velocity[:]=Rel_velocity[:]-1180
-		Flux_map=np.zeros((580,580),float)
-		Velocity_map=np.zeros((580,580),float)
-		Dispersion_map=np.zeros((580,580),float)
+		Rel_velocity[:]=Rel_velocity[:]-1200
+		Flux_map=np.zeros((gc.grid_size,gc.grid_size),float)
+		Velocity_map=np.zeros((gc.grid_size,gc.grid_size),float)
+		Dispersion_map=np.zeros((gc.grid_size,gc.grid_size),float)
 		x,y,bin_num=np.genfromtxt(gc.dir3, usecols=(0,1,2), unpack=True)
+		n=np.zeros(int(max(bin_num)+1))
+		for i in range(0,int(max(bin_num)+1)):
+			n[i]=np.count_nonzero(bin_num==i+1)
+		print(len(n),len(Intensity))
+		for i in range(len(Intensity)):
+			Intensity[i]/=n[i]
 		for i in range(len(x)):
 			Flux_map[int(x[i]-1),int(y[i]-1)]=Intensity[int(bin_num[i]-1)]
 			Velocity_map[int(x[i]-1),int(y[i]-1)]=Rel_velocity[int(bin_num[i]-1)]
@@ -30,15 +35,22 @@ def mapping(gc):
 		Flux_map=abs(np.transpose(Flux_map))
 		Velocity_map=np.transpose(Velocity_map)
 		Dispersion_map=np.transpose(Dispersion_map)
-		ax=axs[k,0]
-		im0=ax.imshow(Flux_map,norm=colors.LogNorm())#,vmin=0,vmax=5000)
+		ax=axs[0]
+		im0=ax.imshow(Flux_map,vmin=0,vmax=700)#norm=colors.LogNorm())#,)vmin=1,vmax=25000,clip=True
 		plt.colorbar(im0,ax=ax)
-		ax=axs[k,1]
+		ax=axs[1]
 		im1=ax.imshow(Velocity_map,vmin=-250,vmax=250,cmap=cm.RdBu)
 		plt.colorbar(im1,ax=ax)
-		ax=axs[k,2]
-		im2=ax.imshow(Dispersion_map,vmin=0,vmax=300)
+		ax=axs[2]
+		im2=ax.imshow(Dispersion_map,vmin=0,vmax=200)
 		plt.colorbar(im2,ax=ax)
+		pdf.savefig(fig)
+		plt.close()
+	pdf.close()
+#	plt.show()
+#	w=np.arange(1,2243,1)
+#	plt.scatter(w,Rel_velocity)
+#	plt.show()
 #plt.tight()
-	plt.show()
+
 

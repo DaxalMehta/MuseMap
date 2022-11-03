@@ -19,16 +19,16 @@ def chi_squared(p, x, y):
 
 def fitting(gc,x,spectrum_range,k):
 	bins=np.genfromtxt(gc.dir4)
-	bins=bins[:,spectrum_range]
+#	bins=bins[:,spectrum_range]
 	N=len(bins)
 	p=np.zeros((N,6),float)
-	pdf = PdfPages(gc.dir6+"_"+str(gc.line[k]))
+	pdf = PdfPages(gc.dir7)
 	for i in range(len(bins)):
 		data=bins[i]
 		m=np.mean(data)
 		l=int((gc.line[k]*(1+gc.redshift)-x[0])/1.25)
 		mm=max(data[l-4],data[l-3],data[l-2],data[l-1],data[l],data[l+1],data[l+2],data[l+3],data[l+4])
-		guess = [mm-m,gc.line[k]*(1+gc.redshift),1.,m]
+		guess = [mm-m,gc.line[k]*(1+gc.redshift),2.,m]
 		res = sopt.minimize(chi_squared, guess, args=(x,data))
 		p[i,:4] = res.x    # output in variabile new_p
 		data_fit = line_profile(p[i,:], x)
@@ -46,5 +46,5 @@ def fitting(gc,x,spectrum_range,k):
 		pdf.savefig(fig)
 		plt.close()
 	pdf.close()	
-	np.savetxt(gc.dir5+"_"+str(gc.line[k]), np.column_stack([p]), fmt=b'%10.6f')	
+	np.savetxt(gc.dir6, np.column_stack([p]), fmt=b'%10.6f')	
 	print(str(gc.line[k])+'_Fitting Done')
