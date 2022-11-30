@@ -3,10 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from matplotlib import cm
 from astropy.io import fits
-from matplotlib.backends.backend_pdf import PdfPages
 def mapping(gc):
 	N=len(gc.line)
-	pdf = PdfPages(gc.dir8)
 	fig,axs=plt.subplots(N,3)
 	for k in range(N):
 		Intensity,Rel_velocity,Vel_dispersion,Deviation=np.genfromtxt(gc.dir6,usecols=(5,1,2,4),unpack=True)
@@ -44,9 +42,8 @@ def mapping(gc):
 		ax=axs[2]
 		im2=ax.imshow(Dispersion_map,vmin=0,vmax=200)
 		plt.colorbar(im2,ax=ax)
-		pdf.savefig(fig)
+		plt.savefig(gc.dir8)
 		plt.close()
-	pdf.close()
 #	plt.show()
 #	w=np.arange(1,2243,1)
 #	plt.scatter(w,Rel_velocity)
